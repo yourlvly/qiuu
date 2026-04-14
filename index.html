@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanz Daily Hub ✨</title>
+    <!-- Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Outfit for a modern, soft geometric look -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        soft: {
+                            bg: '#fdfbfb',
+                            card: 'rgba(255, 255, 255, 0.7)',
+                            primary: '#a1c4fd',
+                            secondary: '#c2e9fb',
+                            accent: '#ffb7b2',
+                            text: '#475569'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            /* Soft pastel gradient background */
+            background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 100vh;
+            color: #334155;
+        }
+        
+        /* Glassmorphism effect for cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* Smooth transitions */
+        .transition-all-custom {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Checkbox styling */
+        input[type="checkbox"] {
+            accent-color: #a1c4fd;
+            width: 1.2rem;
+            height: 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .completed-task {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 selection:bg-soft-accent selection:text-white pb-24">
+
+    <!-- Header Section -->
+    <header class="max-w-4xl mx-auto mb-8 flex justify-between items-end">
+        <div>
+            <p class="text-sm font-medium text-slate-500 mb-1" id="currentDate">Senin, 1 Jan</p>
+            <h1 class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                Halo, Kanz! ✨
+            </h1>
+            <p class="text-slate-600 mt-1">Siap produktif dan hemat hari ini?</p>
+        </div>
+        <div class="h-12 w-12 rounded-full glass-card flex items-center justify-center shadow-sm">
+            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Kanz&backgroundColor=transparent" alt="Avatar" class="w-10 h-10 rounded-full">
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- Dashboard / Overview -->
+        <section class="md:col-span-12 glass-card rounded-3xl p-6 flex flex-col md:flex-row gap-6 items-center">
+            <div class="flex-1 w-full">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-piggy-bank text-soft-accent"></i> Visi Menabung 🎯
+                    </h2>
+                    <button onclick="editBudget()" class="text-xs text-blue-500 hover:text-blue-700"><i class="fa-solid fa-pen"></i> Edit Target</button>
+                </div>
+                <div class="mb-2 flex justify-between text-sm">
+                    <span class="text-slate-500">Sisa Budget Bulan Ini:</span>
+                    <span class="font-bold text-slate-700" id="sisaBudget">Rp 0</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-200 rounded-full h-3 mb-1 overflow-hidden">
+                    <div id="budgetProgressBar" class="bg-gradient-to-r from-soft-primary to-soft-secondary h-3 rounded-full transition-all duration-1000" style="width: 100%"></div>
+                </div>
+                <p class="text-xs text-slate-400 text-right" id="budgetStatusText">Aman terkendali! 🚀</p>
+            </div>
+
+            <!-- Total Pengeluaran Hari Ini Highlight -->
+            <div class="bg-white/50 rounded-2xl p-4 w-full md:w-auto min-w-[200px] text-center shadow-sm">
+                <p class="text-xs font-medium text-slate-500 mb-1">Bocor Alus Hari Ini 💸</p>
+                <h3 class="text-2xl font-bold text-rose-400" id="totalPengeluaranHariIni">Rp 0</h3>
+            </div>
+        </section>
+
+        <!-- Kolom Kiri: Jadwal & Tugas -->
+        <section class="md:col-span-6 flex flex-col gap-4">
+            <div class="glass-card rounded-3xl p-6 h-full flex flex-col">
+                <h2 class="font-bold text-xl mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-400"></i> Misi Hari Ini 🚀
+                </h2>
+                
+                <!-- Input Tugas -->
+                <form id="formTugas" class="flex gap-2 mb-4">
+                    <input type="text" id="inputTugas" placeholder="Mau ngapain hari ini?" required
+                        class="flex-1 bg-white/50 border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-soft-primary text-sm transition-all-custom">
+                    <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white p-2 w-10 h-10 rounded-xl transition-all-custom transform hover:scale-105 flex items-center justify-center">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </form>
+
+                <!-- Daftar Tugas -->
+                <div class="flex-1 overflow-y-auto pr-2" style="max-height: 400px;">
+                    <ul id="daftarTugas" class="space-y-3">
+                        <!-- Tugas items will be injected here -->
+                    </ul>
+                    <div id="tugasKosong" class="hidden flex-col items-center justify-center h-40 text-center opacity-50">
+                        <i class="fa-regular fa-face-smile-wink text-4xl mb-2 text-slate-400"></i>
+                        <p class="text-sm">Yeay! Belum ada tugas nih.<br>Santai dulu atau tambah baru?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Kolom Kanan: Pengeluaran -->
+        <section class="md:col-span-6 flex flex-col gap-4">
+            <div class="glass-card rounded-3xl p-6 h-full flex flex-col">
+                <h2 class="font-bold text-xl mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-wallet text-emerald-400"></i> Catat Pengeluaran 📉
+                </h2>
+                
+                <!-- Input Pengeluaran -->
+                <form id="formPengeluaran" class="flex flex-col gap-3 mb-4">
+                    <input type="text" id="namaPengeluaran" placeholder="Beli apa tadi? (ex: Kopi kekinian)" required
+                        class="w-full bg-white/50 border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-sm transition-all-custom">
+                    
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <span class="absolute left-3 top-2 text-slate-400 text-sm">Rp</span>
+                            <input type="number" id="jumlahPengeluaran" placeholder="0" required min="1"
+                                class="w-full bg-white/50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 text-sm transition-all-custom">
+                        </div>
+                        <button type="submit" class="bg-emerald-400 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl transition-all-custom transform hover:scale-105 text-sm font-medium">
+                            Catat!
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Riwayat Pengeluaran -->
+                <div class="flex justify-between items-center mb-2 mt-2">
+                    <h3 class="text-sm font-semibold text-slate-600">Riwayat (Bulan Ini)</h3>
+                    <button onclick="resetPengeluaran()" class="text-xs text-rose-400 hover:text-rose-600 transition-colors">Reset</button>
+                </div>
+                <div class="flex-1 overflow-y-auto pr-2" style="max-height: 320px;">
+                    <ul id="daftarPengeluaran" class="space-y-3">
+                        <!-- Pengeluaran items will be injected here -->
+                    </ul>
+                    <div id="pengeluaranKosong" class="hidden flex-col items-center justify-center h-32 text-center opacity-50">
+                        <i class="fa-solid fa-leaf text-3xl mb-2 text-emerald-300"></i>
+                        <p class="text-sm">Wah, dompet aman.<br>Belum ada jajan hari ini!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Edit Target -->
+    <div id="modalTarget" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity">
+        <div class="glass-card bg-white p-6 rounded-3xl w-11/12 max-w-sm transform scale-95 transition-transform" id="modalContent">
+            <h3 class="font-bold text-lg mb-4 text-center">Atur Target Keuangan Kanz 🎯</h3>
+            <div class="mb-4">
+                <label class="block text-xs font-medium text-slate-500 mb-1">Budget Pengeluaran Bulan Ini (Rp)</label>
+                <input type="number" id="inputBudgetLimit" class="w-full border border-slate-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300">
+            </div>
+            <div class="flex justify-end gap-2 mt-6">
+                <button onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 rounded-xl">Batal</button>
+                <button onclick="saveBudget()" class="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl shadow-md">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // State Management
+        let tasks = JSON.parse(localStorage.getItem('kanz_tasks')) || [];
+        let expenses = JSON.parse(localStorage.getItem('kanz_expenses')) || [];
+        let budgetLimit = parseFloat(localStorage.getItem('kanz_budget_limit')) || 1500000; // Default budget 1.5jt
+
+        // DOM Elements
+        const elDate = document.getElementById('currentDate');
+        const formTugas = document.getElementById('formTugas');
+        const inputTugas = document.getElementById('inputTugas');
+        const daftarTugas = document.getElementById('daftarTugas');
+        const tugasKosong = document.getElementById('tugasKosong');
+        
+        const formPengeluaran = document.getElementById('formPengeluaran');
+        const inputNamaPengeluaran = document.getElementById('namaPengeluaran');
+        const inputJumlahPengeluaran = document.getElementById('jumlahPengeluaran');
+        const daftarPengeluaran = document.getElementById('daftarPengeluaran');
+        const pengeluaranKosong = document.getElementById('pengeluaranKosong');
+        
+        const elSisaBudget = document.getElementById('sisaBudget');
+        const elTotalHariIni = document.getElementById('totalPengeluaranHariIni');
+        const budgetProgressBar = document.getElementById('budgetProgressBar');
+        const budgetStatusText = document.getElementById('budgetStatusText');
+        
+        const modalTarget = document.getElementById('modalTarget');
+        const modalContent = document.getElementById('modalContent');
+        const inputBudgetLimit = document.getElementById('inputBudgetLimit');
+
+        // Utility: Format Rupiah
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+        };
+
+        // Utility: Get Today's Date String
+        const getTodayString = () => {
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date().toLocaleDateString('id-ID', options);
+        };
+
+        // Initialize App
+        function init() {
+            elDate.textContent = getTodayString();
+            renderTasks();
+            renderExpenses();
+            updateDashboard();
+        }
+
+        // --- TASKS (JADWAL) LOGIC ---
+        formTugas.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = inputTugas.value.trim();
+            if (text) {
+                const newTask = {
+                    id: Date.now(),
+                    text: text,
+                    completed: false
+                };
+                tasks.unshift(newTask); // Add to top
+                saveTasks();
+                renderTasks();
+                inputTugas.value = '';
+            }
+        });
+
+        function toggleTask(id) {
+            tasks = tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task);
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            saveTasks();
+            renderTasks();
+        }
+
+        function saveTasks() {
+            localStorage.setItem('kanz_tasks', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            daftarTugas.innerHTML = '';
+            if (tasks.length === 0) {
+                tugasKosong.classList.remove('hidden');
+                tugasKosong.classList.add('flex');
+            } else {
+                tugasKosong.classList.add('hidden');
+                tugasKosong.classList.remove('flex');
+                
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = `group bg-white/60 border border-slate-100 rounded-xl p-3 flex items-center justify-between hover:shadow-md transition-all-custom ${task.completed ? 'opacity-70' : ''}`;
+                    li.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                            <span class="text-sm truncate ${task.completed ? 'completed-task' : 'text-slate-700 font-medium'}">${task.text}</span>
+                        </div>
+                        <button onclick="deleteTask(${task.id})" class="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    `;
+                    daftarTugas.appendChild(li);
+                });
+            }
+        }
+
+        // --- EXPENSES (PENGELUARAN) LOGIC ---
+        formPengeluaran.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = inputNamaPengeluaran.value.trim();
+            const amount = parseFloat(inputJumlahPengeluaran.value);
+            
+            if (name && amount > 0) {
+                const newExpense = {
+                    id: Date.now(),
+                    name: name,
+                    amount: amount,
+                    date: new Date().toISOString()
+                };
+                expenses.unshift(newExpense);
+                saveExpenses();
+                renderExpenses();
+                updateDashboard();
+                inputNamaPengeluaran.value = '';
+                inputJumlahPengeluaran.value = '';
+            }
+        });
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(exp => exp.id !== id);
+            saveExpenses();
+            renderExpenses();
+            updateDashboard();
+        }
+
+        function resetPengeluaran() {
+            if(confirm("Yakin mau hapus semua riwayat pengeluaran bulan ini?")) {
+                expenses = [];
+                saveExpenses();
+                renderExpenses();
+                updateDashboard();
+            }
+        }
+
+        function saveExpenses() {
+            localStorage.setItem('kanz_expenses', JSON.stringify(expenses));
+        }
+
+        function renderExpenses() {
+            daftarPengeluaran.innerHTML = '';
+            if (expenses.length === 0) {
+                pengeluaranKosong.classList.remove('hidden');
+                pengeluaranKosong.classList.add('flex');
+            } else {
+                pengeluaranKosong.classList.add('hidden');
+                pengeluaranKosong.classList.remove('flex');
+                
+                expenses.forEach(exp => {
+                    // Cek apakah pengeluaran hari ini
+                    const isToday = new Date(exp.date).toDateString() === new Date().toDateString();
+                    const timeString = new Date(exp.date).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+
+                    const li = document.createElement('li');
+                    li.className = 'group bg-white/60 border border-slate-100 rounded-xl p-3 flex flex-col hover:shadow-sm transition-all-custom';
+                    li.innerHTML = `
+                        <div class="flex justify-between items-start w-full">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-arrow-right-from-bracket rotate-90"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700">${exp.name}</p>
+                                    <p class="text-[10px] text-slate-400">${isToday ? 'Hari ini' : new Date(exp.date).toLocaleDateString('id-ID', {day:'numeric', month:'short'})} • ${timeString}</p>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <p class="text-sm font-bold text-rose-500">-${formatRupiah(exp.amount).replace('Rp', '')}</p>
+                                <button onclick="deleteExpense(${exp.id})" class="text-[10px] text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                                    Hapus
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    daftarPengeluaran.appendChild(li);
+                });
+            }
+        }
+
+        // --- DASHBOARD & BUDGET LOGIC ---
+        function updateDashboard() {
+            // Hitung total pengeluaran
+            const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            
+            // Hitung pengeluaran hari ini saja
+            const today = new Date().toDateString();
+            const todayExpenses = expenses.filter(exp => new Date(exp.date).toDateString() === today)
+                                          .reduce((sum, exp) => sum + exp.amount, 0);
+
+            // Hitung sisa budget
+            const sisa = budgetLimit - totalExpenses;
+            
+            // Update UI Teks
+            elSisaBudget.textContent = formatRupiah(sisa);
+            elTotalHariIni.textContent = formatRupiah(todayExpenses);
+
+            // Update Progress Bar
+            let percentage = ((budgetLimit - totalExpenses) / budgetLimit) * 100;
+            if (percentage < 0) percentage = 0;
+            
+            budgetProgressBar.style.width = `${percentage}%`;
+
+            // Ubah warna bar dan teks berdasarkan sisa
+            if (percentage > 50) {
+                budgetProgressBar.className = 'bg-gradient-to-r from-emerald-400 to-teal-400 h-3 rounded-full transition-all duration-1000';
+                budgetStatusText.textContent = 'Aman terkendali, Gen Z rajin nabung! 💸✨';
+                budgetStatusText.className = 'text-xs text-emerald-500 text-right mt-1 font-medium';
+            } else if (percentage > 20) {
+                budgetProgressBar.className = 'bg-gradient-to-r from-amber-300 to-orange-400 h-3 rounded-full transition-all duration-1000';
+                budgetStatusText.textContent = 'Awas, rem dikit jajannya bestie! 🚧';
+                budgetStatusText.className = 'text-xs text-amber-500 text-right mt-1 font-medium';
+            } else {
+                budgetProgressBar.className = 'bg-gradient-to-r from-rose-400 to-red-500 h-3 rounded-full transition-all duration-1000';
+                budgetStatusText.textContent = 'Darurat dompet tipis! Puasa jajan dulu 😭🆘';
+                budgetStatusText.className = 'text-xs text-rose-500 text-right mt-1 font-bold';
+            }
+        }
+
+        // --- MODAL TARGET BUDGET LOGIC ---
+        function editBudget() {
+            inputBudgetLimit.value = budgetLimit;
+            modalTarget.classList.remove('hidden');
+            modalTarget.classList.add('flex');
+            // Sedikit delay untuk animasi scale
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modalTarget.classList.add('hidden');
+                modalTarget.classList.remove('flex');
+            }, 200);
+        }
+
+        function saveBudget() {
+            const newBudget = parseFloat(inputBudgetLimit.value);
+            if (!isNaN(newBudget) && newBudget > 0) {
+                budgetLimit = newBudget;
+                localStorage.setItem('kanz_budget_limit', budgetLimit);
+                updateDashboard();
+                closeModal();
+            } else {
+                alert("Masukkan angka yang valid ya!");
+            }
+        }
+
+        // Jalankan aplikasi
+        init();
+
+    </script>
+</body>
+</html>
